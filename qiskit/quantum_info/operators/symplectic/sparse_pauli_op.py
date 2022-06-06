@@ -693,6 +693,7 @@ class SparsePauliOp(LinearOp):
             return labels
         return labels.tolist()
 
+
     def to_matrix(self, sparse=False):
         """Convert to a dense or sparse matrix.
 
@@ -704,12 +705,43 @@ class SparsePauliOp(LinearOp):
             array: A dense matrix if `sparse=False`.
             csr_matrix: A sparse matrix in CSR format if `sparse=True`.
         """
-        mat = None
+
+        class BStack:
+            def __init__(self, f):
+                self.stack = []
+                self.f = f
+
+            def addp(self, p):
+                if not self.stack:
+                    self.stack.append(p)
+                    return
+                q = self.stack[-1]
+                if q[0] == p[0]:
+                    height = 1 + q[0]
+                    newv = self.f(height, q[1], p[1])
+                    self.stack.pop()
+                    self.addp((height, newv))
+                else:
+                    self.stack.append(p)
+
+            def add(self, v):
+                self.addp((1,v))
+
+            def flush(self):
+                if not self.stack:
+                    raise Exception("flush: stack was empty")
+                v = self.stack.pop()[1]
+                while self.stack:
+                    q = self.stack.pop()
+                    v = self.f(q[0], q[1], v)
+                return v
+
+        def addthem(height, a,b):
+            return a+b
+        bs = BStack(addthem)
         for i in self.matrix_iter(sparse=sparse):
-            if mat is None:
-                mat = i
-            else:
-                mat += i
+            bs.add(i)
+        mat = bs.flush()
         return mat
 
     def to_operator(self):

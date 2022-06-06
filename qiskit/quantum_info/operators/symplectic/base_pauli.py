@@ -433,7 +433,7 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
             coeff = (-1j) ** phase
         else:
             coeff = 1
-        data = np.array([coeff * (-1) ** (bin(i).count("1") % 2) for i in z_indices & indptr])
+        data = _make_data1(coeff, z_indices, indptr)
         if sparse:
             # Return sparse matrix
             from scipy.sparse import csr_matrix
@@ -693,3 +693,13 @@ def _count_y(x, z, dtype=None):
     if dtype is None:
         dtype = np.min_scalar_type(x.shape[axis])
     return (x & z).sum(axis=axis, dtype=dtype)
+
+def _make_data0(coeff, z_indices, indptr):
+    data = np.array([coeff * (-1) ** (bin(i).count("1") % 2) for i in z_indices & indptr])
+    return data
+
+def _make_data1(coeff, z_indices, indptr):
+    data = np.full(indptr.shape, coeff, dtype=np.complex128)
+    negatives = np.bitwise_xor.reduce(np.unpackbits((z_indices & indptr)[:, None].view(np.uint8), axis=1), axis=1) == 1
+    data[negatives] *= -1
+    return data
