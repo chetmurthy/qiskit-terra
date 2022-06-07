@@ -13,6 +13,7 @@
 """ Eigen Solvers Package """
 
 from .numpy_eigen_solver import NumPyEigensolver
+from .davidson_eigen_solver import DavidsonEigensolver
 from .eigen_solver import Eigensolver, EigensolverResult
 
-__all__ = ["NumPyEigensolver", "Eigensolver", "EigensolverResult"]
+__all__ = ["NumPyEigensolver", "DavidsonEigensolver", "Eigensolver", "EigensolverResult"]

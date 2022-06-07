@@ -90,6 +90,7 @@ knowledge to do this in that application domain.
    :toctree: ../stubs/
    :nosignatures:
 
+   DavidsonEigensolver
    NumPyEigensolver
 
 
@@ -151,6 +152,7 @@ Algorithms that can find the minimum eigenvalue of an operator.
    :toctree: ../stubs/
    :nosignatures:
 
+   DavidsonMinimumEigensolver
    NumPyMinimumEigensolver
    QAOA
    VQE
@@ -223,13 +225,14 @@ from .amplitude_estimators import (
     MaximumLikelihoodAmplitudeEstimationResult,
     EstimationProblem,
 )
-from .eigen_solvers import NumPyEigensolver, Eigensolver, EigensolverResult
+from .eigen_solvers import NumPyEigensolver, DavidsonEigensolver, Eigensolver, EigensolverResult
 from .factorizers import Shor, ShorResult
 from .linear_solvers import HHL, LinearSolver, NumPyLinearSolver, LinearSolverResult
 from .minimum_eigen_solvers import (
     VQE,
     VQEResult,
     QAOA,
+    DavidsonMinimumEigensolver,
     NumPyMinimumEigensolver,
     MinimumEigensolver,
     MinimumEigensolverResult,
@@ -266,6 +269,7 @@ __all__ = [
     "MaximumLikelihoodAmplitudeEstimationResult",
     "EstimationProblem",
     "NumPyEigensolver",
+    "DavidsonEigensolver",
     "RealEvolver",
     "ImaginaryEvolver",
     "TrotterQRTE",
@@ -283,6 +287,7 @@ __all__ = [
     "HHL",
     "NumPyLinearSolver",
     "NumPyMinimumEigensolver",
+    "DavidsonMinimumEigensolver",
     "MinimumEigensolver",
     "MinimumEigensolverResult",
     "HamiltonianPhaseEstimation",

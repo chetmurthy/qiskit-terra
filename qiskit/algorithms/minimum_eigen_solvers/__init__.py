@@ -15,6 +15,7 @@
 from .vqe import VQE, VQEResult
 from .qaoa import QAOA
 from .numpy_minimum_eigen_solver import NumPyMinimumEigensolver
+from .davidson_minimum_eigen_solver import DavidsonMinimumEigensolver
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "VQEResult",
     "QAOA",
     "NumPyMinimumEigensolver",
+    "DavidsonMinimumEigensolver",
     "MinimumEigensolver",
     "MinimumEigensolverResult",
 ]

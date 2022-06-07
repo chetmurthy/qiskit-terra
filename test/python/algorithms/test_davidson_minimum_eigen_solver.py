@@ -18,13 +18,13 @@ from test.python.algorithms import QiskitAlgorithmsTestCase
 import numpy as np
 from ddt import ddt, data
 
-from qiskit.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import DavidsonMinimumEigensolver
 from qiskit.opflow import PauliSumOp, X, Y, Z
 
 
 @ddt
-class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
-    """Test NumPy Minimum Eigensolver"""
+class TestDavidsonMinimumEigensolver(QiskitAlgorithmsTestCase):
+    """Test Davidson Minimum Eigensolver"""
 
     def setUp(self):
         super().setUp()
@@ -45,7 +45,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
 
     def test_cme(self):
         """Basic test"""
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(
             operator=self.qubit_op, aux_operators=self.aux_ops_list
         )
@@ -57,7 +57,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
     def test_cme_reuse(self):
         """Test reuse"""
         # Start with no operator or aux_operators, give via compute method
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(operator=self.qubit_op)
         self.assertEqual(result.eigenvalue.dtype, np.float64)
         self.assertAlmostEqual(result.eigenvalue, -1.85727503)
@@ -100,7 +100,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
         def criterion(x, v, a_v):
             return v >= -0.5
 
-        algo = NumPyMinimumEigensolver(filter_criterion=criterion)
+        algo = DavidsonMinimumEigensolver(filter_criterion=criterion)
         result = algo.compute_minimum_eigenvalue(
             operator=self.qubit_op, aux_operators=self.aux_ops_list
         )
@@ -117,7 +117,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
         def criterion(x, v, a_v):
             return False
 
-        algo = NumPyMinimumEigensolver(filter_criterion=criterion)
+        algo = DavidsonMinimumEigensolver(filter_criterion=criterion)
         result = algo.compute_minimum_eigenvalue(
             operator=self.qubit_op, aux_operators=self.aux_ops_list
         )
@@ -128,14 +128,14 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
     @data(X, Y, Z)
     def test_cme_1q(self, op):
         """Test for 1 qubit operator"""
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(operator=op)
         self.assertAlmostEqual(result.eigenvalue, -1)
 
     def test_cme_aux_ops_dict(self):
         """Test dictionary compatibility of aux_operators"""
         # Start with an empty dictionary
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(operator=self.qubit_op, aux_operators={})
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
         self.assertIsNone(result.aux_operator_eigenvalues)
@@ -163,7 +163,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
         aux_op1 = PauliSumOp.from_list([("II", 2.0)])
         aux_op2 = PauliSumOp.from_list([("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)])
         aux_ops = [aux_op1, aux_op2]
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(operator=self.qubit_op, aux_operators=aux_ops)
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
         self.assertEqual(len(result.aux_operator_eigenvalues), 2)
@@ -194,7 +194,7 @@ class TestNumPyMinimumEigensolver(QiskitAlgorithmsTestCase):
         aux_op1 = PauliSumOp.from_list([("II", 2.0)])
         aux_op2 = PauliSumOp.from_list([("II", 0.5), ("ZZ", 0.5), ("YY", 0.5), ("XX", -0.5)])
         aux_ops = {"aux_op1": aux_op1, "aux_op2": aux_op2}
-        algo = NumPyMinimumEigensolver()
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(operator=self.qubit_op, aux_operators=aux_ops)
         self.assertAlmostEqual(result.eigenvalue, -1.85727503 + 0j)
         self.assertEqual(len(result.aux_operator_eigenvalues), 2)
