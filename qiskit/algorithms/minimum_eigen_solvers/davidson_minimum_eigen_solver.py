@@ -17,7 +17,7 @@ import logging
 import numpy as np
 
 from qiskit.opflow import OperatorBase
-from ..eigen_solvers.numpy_eigen_solver import NumPyEigensolver
+from ..eigen_solvers.davidson_eigen_solver import DavidsonEigensolver
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 from ..list_or_dict import ListOrDict
 
@@ -26,13 +26,17 @@ logger = logging.getLogger(__name__)
 
 class DavidsonMinimumEigensolver(MinimumEigensolver):
     """
-    The Numpy Minimum Eigensolver algorithm.
+    The Davidson Minimum Eigensolver algorithm.
     """
 
     def __init__(
         self,
         filter_criterion: Callable[
             [Union[List, np.ndarray], float, Optional[ListOrDict[float]]], bool
+        ] = None,
+        initial_guess: np.ndarray = None,
+        preconditioner: Callable[
+            [np.ndarray, complex, np.ndarray], np.ndarray
         ] = None,
     ) -> None:
         """
@@ -43,8 +47,13 @@ class DavidsonMinimumEigensolver(MinimumEigensolver):
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
+            initial_guess: best to look at the PySCF documentation for this
+            preconditioner: best to look at the PySCF documentation for this
         """
-        self._ces = NumPyEigensolver(filter_criterion=filter_criterion)
+        self._ces = DavidsonEigensolver(filter_criterion=filter_criterion,
+                                        initial_guess = initial_guess,
+                                        preconditioner = preconditioner
+                                        )
         self._ret = MinimumEigensolverResult()
 
     @property
@@ -66,7 +75,7 @@ class DavidsonMinimumEigensolver(MinimumEigensolver):
 
     @classmethod
     def supports_aux_operators(cls) -> bool:
-        return NumPyEigensolver.supports_aux_operators()
+        return DavidsonEigensolver.supports_aux_operators()
 
     def compute_minimum_eigenvalue(
         self, operator: OperatorBase, aux_operators: Optional[ListOrDict[OperatorBase]] = None
