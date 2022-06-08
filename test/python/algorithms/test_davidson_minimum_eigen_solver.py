@@ -92,38 +92,17 @@ class TestDavidsonMinimumEigensolver(QiskitAlgorithmsTestCase):
         self.assertAlmostEqual(result.eigenvalue, 2 + 0j)
         self.assertIsNone(result.aux_operator_eigenvalues)
 
-    def test_cme_filter(self):
+    def test_cme_basic(self):
         """Basic test"""
 
-        # define filter criterion
-        # pylint: disable=unused-argument
-        def criterion(x, v, a_v):
-            return v >= -0.5
-
-        algo = DavidsonMinimumEigensolver(filter_criterion=criterion)
+        algo = DavidsonMinimumEigensolver()
         result = algo.compute_minimum_eigenvalue(
             operator=self.qubit_op, aux_operators=self.aux_ops_list
         )
-        self.assertAlmostEqual(result.eigenvalue, -0.22491125 + 0j)
+        self.assertAlmostEqual(result.eigenvalue, -1.8572750302023802 + 0j)
         self.assertEqual(len(result.aux_operator_eigenvalues), 2)
         np.testing.assert_array_almost_equal(result.aux_operator_eigenvalues[0], [2, 0])
         np.testing.assert_array_almost_equal(result.aux_operator_eigenvalues[1], [0, 0])
-
-    def test_cme_filter_empty(self):
-        """Test with filter always returning False"""
-
-        # define filter criterion
-        # pylint: disable=unused-argument
-        def criterion(x, v, a_v):
-            return False
-
-        algo = DavidsonMinimumEigensolver(filter_criterion=criterion)
-        result = algo.compute_minimum_eigenvalue(
-            operator=self.qubit_op, aux_operators=self.aux_ops_list
-        )
-        self.assertEqual(result.eigenvalue, None)
-        self.assertEqual(result.eigenstate, None)
-        self.assertEqual(result.aux_operator_eigenvalues, None)
 
     @data(X, Y, Z)
     def test_cme_1q(self, op):

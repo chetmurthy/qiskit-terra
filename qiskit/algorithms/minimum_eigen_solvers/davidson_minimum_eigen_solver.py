@@ -31,9 +31,6 @@ class DavidsonMinimumEigensolver(MinimumEigensolver):
 
     def __init__(
         self,
-        filter_criterion: Callable[
-            [Union[List, np.ndarray], float, Optional[ListOrDict[float]]], bool
-        ] = None,
         initial_guess: np.ndarray = None,
         preconditioner: Callable[
             [np.ndarray, complex, np.ndarray], np.ndarray
@@ -41,37 +38,13 @@ class DavidsonMinimumEigensolver(MinimumEigensolver):
     ) -> None:
         """
         Args:
-            filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum
-                eigensolver is only searching over feasible states and returns an eigenstate that
-                has the smallest eigenvalue among feasible states. The callable has the signature
-                `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
-                whether to consider this value or not. If there is no
-                feasible element, the result can even be empty.
             initial_guess: best to look at the PySCF documentation for this
             preconditioner: best to look at the PySCF documentation for this
         """
-        self._ces = DavidsonEigensolver(filter_criterion=filter_criterion,
-                                        initial_guess = initial_guess,
+        self._ces = DavidsonEigensolver(initial_guess = initial_guess,
                                         preconditioner = preconditioner
                                         )
         self._ret = MinimumEigensolverResult()
-
-    @property
-    def filter_criterion(
-        self,
-    ) -> Optional[Callable[[Union[List, np.ndarray], float, Optional[ListOrDict[float]]], bool]]:
-        """returns the filter criterion if set"""
-        return self._ces.filter_criterion
-
-    @filter_criterion.setter
-    def filter_criterion(
-        self,
-        filter_criterion: Optional[
-            Callable[[Union[List, np.ndarray], float, Optional[ListOrDict[float]]], bool]
-        ],
-    ) -> None:
-        """set the filter criterion"""
-        self._ces.filter_criterion = filter_criterion
 
     @classmethod
     def supports_aux_operators(cls) -> bool:

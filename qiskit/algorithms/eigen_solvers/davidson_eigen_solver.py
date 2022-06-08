@@ -47,9 +47,6 @@ class DavidsonEigensolver(NumPyEigensolver):
     def __init__(
         self,
         k: int = 1,
-        filter_criterion: Callable[
-            [Union[List, np.ndarray], float, Optional[ListOrDict[float]]], bool
-        ] = None,
         initial_guess: np.ndarray = None,
         preconditioner: Callable[
             [np.ndarray, complex, np.ndarray], np.ndarray
@@ -58,18 +55,12 @@ class DavidsonEigensolver(NumPyEigensolver):
         """
         Args:
             k: How many eigenvalues are to be computed, has a min. value of 1.
-            filter_criterion: callable that allows to filter eigenvalues/eigenstates, only feasible
-                eigenstates are returned in the results. The callable has the signature
-                `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
-                whether to keep this value in the final returned result or not. If the number of
-                elements that satisfies the criterion is smaller than `k` then the returned list has
-                fewer elements and can even be empty.
             initial_guess: best to look at the PySCF documentation for this
             preconditioner: best to look at the PySCF documentation for this
         """
         if k is None:
             raise AlgorithmError("Davidson eigensolver is only useful for computing lowest eigenvalues; for all eigenvalues, use standard eigensolver")
-        super().__init__(k, filter_criterion)
+        super().__init__(k, filter_criterion=None)
         self._initial_guess = initial_guess
         self._preconditioner = preconditioner
 

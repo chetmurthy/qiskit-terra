@@ -19,6 +19,8 @@ import numpy as np
 from ddt import data, ddt
 
 from qiskit.algorithms import DavidsonEigensolver, NumPyEigensolver
+from qiskit.algorithms.exceptions import AlgorithmError
+
 from qiskit.opflow import PauliSumOp, X, Y, Z
 
 
@@ -50,41 +52,8 @@ class TestDavidsonEigensolver(QiskitAlgorithmsTestCase):
     def test_ce_k4(self):
         """Test for k=4 eigenvalues"""
         algo = DavidsonEigensolver(k=4)
-        result = algo.compute_eigenvalues(operator=self.qubit_op, aux_operators=[])
-        self.assertEqual(len(result.eigenvalues), 4)
-        self.assertEqual(len(result.eigenstates), 4)
-        self.assertEqual(result.eigenvalues.dtype, np.float64)
-        np.testing.assert_array_almost_equal(
-            result.eigenvalues, [-1.85727503, -1.24458455, -0.88272215, -0.22491125]
-        )
-
-    def test_ce_k4_filtered(self):
-        """Test for k=4 eigenvalues with filter"""
-
-        # define filter criterion
-        # pylint: disable=unused-argument
-        def criterion(x, v, a_v):
-            return v >= -1
-
-        algo = DavidsonEigensolver(k=4, filter_criterion=criterion)
-        result = algo.compute_eigenvalues(operator=self.qubit_op, aux_operators=[])
-        self.assertEqual(len(result.eigenvalues), 2)
-        self.assertEqual(len(result.eigenstates), 2)
-        self.assertEqual(result.eigenvalues.dtype, np.float64)
-        np.testing.assert_array_almost_equal(result.eigenvalues, [-0.88272215, -0.22491125])
-
-    def test_ce_k4_filtered_empty(self):
-        """Test for k=4 eigenvalues with filter always returning False"""
-
-        # define filter criterion
-        # pylint: disable=unused-argument
-        def criterion(x, v, a_v):
-            return False
-
-        algo = DavidsonEigensolver(k=4, filter_criterion=criterion)
-        result = algo.compute_eigenvalues(operator=self.qubit_op, aux_operators=[])
-        self.assertEqual(len(result.eigenvalues), 0)
-        self.assertEqual(len(result.eigenstates), 0)
+        with np.testing.assert_raises(AlgorithmError):
+            algo.compute_eigenvalues(operator=self.qubit_op, aux_operators=[])
 
     @data(X, Y, Z)
     def test_ce_k1_1q(self, op):
