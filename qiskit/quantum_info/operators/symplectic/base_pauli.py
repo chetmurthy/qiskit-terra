@@ -398,6 +398,20 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
         if not sparse:
             rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
             return rv
+        else:
+            from qiskit._accelerate.base_pauli import make_data
+            p2 = make_data(z,x, phase, group_phase)
+            from scipy.sparse import csr_matrix
+            num_qubits = z.size
+            dim = 2**num_qubits
+            rv = csr_matrix(p2, shape=(dim, dim), dtype=complex)
+            return rv
+
+    @staticmethod
+    def _to_matrix2(z, x, phase=0, group_phase=False, sparse=False):
+        if not sparse:
+            rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
+            return rv
 
         rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
         from qiskit._accelerate.base_pauli import make_data

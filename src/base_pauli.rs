@@ -36,6 +36,7 @@ use numpy::{IntoPyArray, PyReadonlyArray1, PyArray1};
 ///         - the indices of the input array that give the unique values
 ///         - the indices of the unique array that reconstruct the input array
 ///
+
 #[pyfunction]
 pub fn foo(py: Python
 ) -> () {
@@ -84,6 +85,8 @@ pub fn make_data(py: Python,
 		 phase: i64,
 		 group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
+    let debug = false ;
+
     let z_array = z.as_array() ;
     let x_array = x.as_array() ;
     let x_shape = x_array.shape() ;
@@ -96,7 +99,7 @@ pub fn make_data(py: Python,
         let num_qubits = z_shape[0] ;
 	let mut mut_phase = phase ;
 
-	println!("1: z={:?} x={:?} num_qubits={} mut_phase={}", z_array, x_array, num_qubits, mut_phase) ;
+	if debug { println!("1: z={:?} x={:?} num_qubits={} mut_phase={}", z_array, x_array, num_qubits, mut_phase) ; }
 
 	if group_phase {
 	    let mut dotprod = 0 ;
@@ -105,19 +108,19 @@ pub fn make_data(py: Python,
 		    dotprod += 1
 		}
 	    }
-	    println!("2: dotprod={}", dotprod) ;
+	    if debug { println!("2: dotprod={}", dotprod) ; }
 	    mut_phase += dotprod ;
 	    mut_phase = mut_phase % 4 ;
 	}
 
-	println!("2: mut_phase={}", mut_phase) ;
+	if debug { println!("2: mut_phase={}", mut_phase) ; }
 
 	let dim =  1 << num_qubits ;
 	let mut twos_array = Vec::<u64>::new() ;
 	for i in 0..num_qubits {
 	    twos_array.push(1 << i) ;
 	}
-	println!("3: twos_array={:?}", twos_array) ;
+	if debug { println!("3: twos_array={:?}", twos_array) ; }
 
 	let mut x_indices = 0 ;
 	for i in 0..num_qubits {
@@ -132,7 +135,7 @@ pub fn make_data(py: Python,
 	    }
 	}
 
-	println!("4: x_indices={} z_indices={}", x_indices, z_indices) ;
+	if debug { println!("4: x_indices={} z_indices={}", x_indices, z_indices) ; }
 
 	let mut indptr = Vec::<u64>::new() ;
 	for i in 0..(dim+1) {
@@ -151,12 +154,12 @@ pub fn make_data(py: Python,
 	    3 => Complex64::new(0.0, 1.0),
 	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
 	} ;
-	println!("coeff = {}", coeff) ;
+	if debug { println!("coeff = {}", coeff) ; }
 
 
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
-	    println!("indp[] = {}", indp) ;
+	    if debug { println!("indp[] = {}", indp) ; }
 	    if (indp & z_indices).count_ones() % 2 == 1 {
 		data.push(-coeff) ;
 	    }
