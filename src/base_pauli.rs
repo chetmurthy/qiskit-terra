@@ -10,6 +10,8 @@
 // copyright notice, and modified files need to carry a notice indicating
 // that they have been altered from the originals.
 
+use std::time::Instant;
+
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 use pyo3::Python;
@@ -77,6 +79,24 @@ pub fn bar(py: Python
     }
 }
 
+#[pyfunction]
+pub fn timed_make_data(py: Python,
+       		 z: PyReadonlyArray1<bool>,
+                 x: PyReadonlyArray1<bool>,
+		 phase: i64,
+		 group_phase: bool
+) -> PyResult<(PyObject, PyObject, PyObject)> {
+
+    let now = Instant::now();
+    println!("START make_data()");
+
+    // Calling a slow function, it may take a while
+    let rv = make_data(py, z, x, phase, group_phase) ;
+
+    let elapsed_time = now.elapsed();
+    println!("END ELAPSED make_data(): {} ms", elapsed_time.as_millis());
+    return rv ;
+}
 
 #[pyfunction]
 pub fn make_data(py: Python,
@@ -179,6 +199,7 @@ pub fn make_data(py: Python,
 #[pymodule]
 pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(make_data))?;
+    m.add_wrapped(wrap_pyfunction!(timed_make_data))?;
     m.add_wrapped(wrap_pyfunction!(foo))?;
     m.add_wrapped(wrap_pyfunction!(bar))?;
     Ok(())
