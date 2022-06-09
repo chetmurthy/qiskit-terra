@@ -40,46 +40,6 @@ use numpy::{IntoPyArray, PyReadonlyArray1, PyArray1};
 ///
 
 #[pyfunction]
-pub fn foo(py: Python
-) -> () {
-    let mut vec = Vec::new();
-    vec.push(1);
-    vec.push(2);
-
-    assert_eq!(vec.len(), 2);
-    assert_eq!(vec[0], 1);
-
-    assert_eq!(vec.pop(), Some(2));
-    assert_eq!(vec.len(), 1);
-
-    vec[0] = 7;
-    assert_eq!(vec[0], 7);
-
-    vec.extend([1, 2, 3].iter().copied());
-
-    for x in &vec {
-	println!("{x}");
-    }
-    assert_eq!(vec, [7, 1, 2, 3]);
-}
-
-#[pyfunction]
-pub fn bar(py: Python
-) -> () {
-    let mut vec = Vec::<u64>::new();
-    vec.push(1);
-    vec.push(2);
-    vec.push(3);
-    vec.push(4);
-
-
-    for i in 0..vec.len() {
-	println!("vec[{}] = {}", i, vec[i]) ;
-
-    }
-}
-
-#[pyfunction]
 pub fn timed_make_data(py: Python,
        		 z: PyReadonlyArray1<bool>,
                  x: PyReadonlyArray1<bool>,
@@ -209,7 +169,5 @@ pub fn make_data(py: Python,
 pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(make_data))?;
     m.add_wrapped(wrap_pyfunction!(timed_make_data))?;
-    m.add_wrapped(wrap_pyfunction!(foo))?;
-    m.add_wrapped(wrap_pyfunction!(bar))?;
     Ok(())
 }
