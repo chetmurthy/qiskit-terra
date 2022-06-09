@@ -12,8 +12,8 @@ def timer(msg, f):
     return rv
 
 def sparse_to_matrix(z,x,phase=0,group_phase=False):
-    from qiskit._accelerate.base_pauli import make_data, timed_make_data
-    p2 = timed_make_data(z,x, phase, group_phase)
+    from qiskit._accelerate.base_pauli import make_data, old_make_data, timed_make_data, timed_old_make_data
+    p2 = make_data(z,x, phase, group_phase)
     from scipy.sparse import csr_matrix
     num_qubits = z.size
     dim = 2**num_qubits
