@@ -16,6 +16,7 @@ use pyo3::prelude::*;
 use pyo3::wrap_pymodule;
 use pyo3::Python;
 
+mod base_pauli;
 mod dense_layout;
 mod edge_collections;
 mod nlayout;
@@ -43,6 +44,7 @@ fn _accelerate(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pymodule!(pauli_exp_val::pauli_expval))?;
     m.add_wrapped(wrap_pymodule!(dense_layout::dense_layout))?;
     m.add_wrapped(wrap_pymodule!(sparse_pauli_op::sparse_pauli_op))?;
+    m.add_wrapped(wrap_pymodule!(base_pauli::base_pauli))?;
     m.add_wrapped(wrap_pymodule!(results::results))?;
     Ok(())
 }
