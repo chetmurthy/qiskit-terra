@@ -106,6 +106,7 @@ pub fn make_data(py: Python,
 		 group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
     let debug = false ;
+    let now = Instant::now();
 
     let z_array = z.as_array() ;
     let x_array = x.as_array() ;
@@ -177,6 +178,8 @@ pub fn make_data(py: Python,
 	if debug { println!("coeff = {}", coeff) ; }
 
 
+    println!("BEFORE data: {} ms", now.elapsed().as_millis());
+
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
 	    if debug { println!("indp[] = {}", indp) ; }
@@ -187,6 +190,7 @@ pub fn make_data(py: Python,
 		data.push(coeff) ;
 	    }
 	}
+    println!("AFTER data: {} ms", now.elapsed().as_millis());
 
 	Ok((
             data.into_pyarray(py).into(),
