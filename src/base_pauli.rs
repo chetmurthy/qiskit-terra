@@ -37,6 +37,47 @@ use numpy::{IntoPyArray, PyReadonlyArray1, PyArray1};
 ///         - the indices of the unique array that reconstruct the input array
 ///
 #[pyfunction]
+pub fn foo(py: Python
+) -> () {
+    let mut vec = Vec::new();
+    vec.push(1);
+    vec.push(2);
+
+    assert_eq!(vec.len(), 2);
+    assert_eq!(vec[0], 1);
+
+    assert_eq!(vec.pop(), Some(2));
+    assert_eq!(vec.len(), 1);
+
+    vec[0] = 7;
+    assert_eq!(vec[0], 7);
+
+    vec.extend([1, 2, 3].iter().copied());
+
+    for x in &vec {
+	println!("{x}");
+    }
+    assert_eq!(vec, [7, 1, 2, 3]);
+}
+
+#[pyfunction]
+pub fn bar(py: Python
+) -> () {
+    let mut vec = Vec::<u64>::new();
+    vec.push(1);
+    vec.push(2);
+    vec.push(3);
+    vec.push(4);
+
+
+    for i in 0..vec.len() {
+	println!("vec[{}] = {}", i, vec[i]) ;
+
+    }
+}
+
+
+#[pyfunction]
 pub fn make_data(py: Python,
        		 z: PyReadonlyArray1<bool>,
                  x: PyReadonlyArray1<bool>,
@@ -77,14 +118,20 @@ pub fn make_data(py: Python,
 	    twos_array.push(1 << i) ;
 	}
 	println!("3: twos_array={:?}", twos_array) ;
-	let x_indices = x_array.iter()
-	    .zip(twos_array.iter())
-	    .map(|(x, t)| if !x { !t } else { 0 as u64 })
-	    .sum::<u64>() ;
-	let z_indices = z_array.iter()
-	    .zip(twos_array.iter())
-	    .map(|(z, t)| if !z { !t } else { 0 as u64 })
-	    .sum::<u64>() ;
+
+	let mut x_indices = 0 ;
+	for i in 0..num_qubits {
+	    if x_array[i] {
+		x_indices += twos_array[i] ;
+	    }
+	}
+	let mut z_indices = 0 ;
+	for i in 0..num_qubits {
+	    if z_array[i] {
+		z_indices += twos_array[i] ;
+	    }
+	}
+
 	println!("4: x_indices={} z_indices={}", x_indices, z_indices) ;
 
 	let mut indptr = Vec::<u64>::new() ;
@@ -92,11 +139,11 @@ pub fn make_data(py: Python,
 	    indptr.push(i) ;
 	}
 
-	let mut indices = Vec::new() ;
-	for indp in indptr.iter() {
-	    indices.push(!indp ^ x_indices) ;
-	}
+	let mut indices = Vec::<u64>::new() ;
 
+	for i in 0..indptr.len() {
+	    indices.push(indptr[i] ^ x_indices) ;
+	}
 	let coeff = match phase % 4 {
 	    0 => Complex64::new(1.0, 0.0),
 	    1 => Complex64::new(0.0, -1.0),
@@ -127,5 +174,7 @@ pub fn make_data(py: Python,
 #[pymodule]
 pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(make_data))?;
+    m.add_wrapped(wrap_pyfunction!(foo))?;
+    m.add_wrapped(wrap_pyfunction!(bar))?;
     Ok(())
 }
