@@ -46,13 +46,24 @@ def make_data(coeff, z_indices, indptr):
     data[negatives] *= -1
     return data
 
-coeff = -1j
-z = np.array([True, True, True, True], dtype=bool)
-x = np.array([True, True, True, True], dtype=bool)
-phase = 0
-group_phase = False
-op = Pauli('Y' * 4)
+def equality_test(p1, p2):
+    (data1, indices1, indptr1) = p1
+    (data2, indices2, indptr2) = p2
+    return np.array_equal(data1,data2) and np.array_equal(indices1,indices2) and np.array_equal(indptr1,indptr2) 
+
+z=np.array([False, True], dtype=bool)
+x=np.array([ True, False], dtype=bool)
+#phase=3
+phase=0
+group_phase=False
+
 
 if __name__ == "__main__":
-    qiskit._accelerate.base_pauli.make_data(z,x,phase,group_phase)
-
+    p1 = BasePauli._to_matrix_sparse(z=z, x=x, phase=phase, group_phase=group_phase)
+    #p1 = to_matrix_orig(z=z, x=x, phase=phase, group_phase=group_phase)
+    print("p1=%s" % (p1,))
+    from qiskit._accelerate.base_pauli import make_data
+    p2 = make_data(z,x, phase, group_phase)
+    print("p2=%s" % (p2,))
+    if not equality_test(p1, p2):
+        print ("not equal")

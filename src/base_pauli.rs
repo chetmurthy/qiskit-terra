@@ -151,11 +151,13 @@ pub fn make_data(py: Python,
 	    3 => Complex64::new(0.0, 1.0),
 	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
 	} ;
+	println!("coeff = {}", coeff) ;
 
 
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
-	    if (!indp & z_indices).count_ones() % 2 == 1 {
+	    println!("indp[] = {}", indp) ;
+	    if (indp & z_indices).count_ones() % 2 == 1 {
 		data.push(-coeff) ;
 	    }
 	    else {

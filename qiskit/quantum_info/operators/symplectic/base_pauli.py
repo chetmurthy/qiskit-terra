@@ -395,6 +395,73 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
 
     @staticmethod
     def _to_matrix(z, x, phase=0, group_phase=False, sparse=False):
+        if not sparse:
+            rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
+            return rv
+
+        rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
+        from qiskit._accelerate.base_pauli import make_data
+        p1 = (rv.data, rv.indices, rv.indptr)
+        p2 = make_data(z,x, phase, group_phase)
+        from scipy.sparse import csr_matrix
+        num_qubits = z.size
+        dim = 2**num_qubits
+        rv2 = csr_matrix(p2, shape=(dim, dim), dtype=complex)
+        p2b = (rv2.data, rv2.indices, rv2.indptr)
+
+        if not (equality_test(p1, p2b)):
+            raise QiskitError("accelerated method returned different results: (z=%s, x=%s, phase=%s, group_phase=%s)" % (z, x, phase, group_phase))
+        return rv
+
+    @staticmethod
+    def _to_matrix_sparse(z, x, phase=0, group_phase=False):
+        """Return the matrix matrix from symplectic representation.
+
+        The Pauli is defined as :math:`P = (-i)^{phase + z.x} * Z^z.x^x`
+        where ``array = [x, z]``.
+
+        Args:
+            z (array): The symplectic representation z vector.
+            x (array): The symplectic representation x vector.
+            phase (int): Pauli phase.
+            group_phase (bool): Optional. If True use group-phase convention
+                                instead of BasePauli ZX-phase convention.
+                                (default: False).
+            sparse (bool): Optional. Of True return a sparse CSR matrix,
+                           otherwise return a dense Numpy array
+                           (default: False).
+
+        Returns:
+            array: if sparse=False.
+            csr_matrix: if sparse=True.
+        """
+        num_qubits = z.size
+
+        # Convert to zx_phase
+        if group_phase:
+            phase += np.sum(x & z)
+            phase %= 4
+
+        dim = 2**num_qubits
+        twos_array = 1 << np.arange(num_qubits)
+        x_indices = np.asarray(x).dot(twos_array)
+        z_indices = np.asarray(z).dot(twos_array)
+
+        indptr = np.arange(dim + 1, dtype=np.uint)
+        indices = indptr ^ x_indices
+        if phase:
+            coeff = (-1j) ** phase
+        else:
+            coeff = 1
+        data = _make_data1(coeff, z_indices, indptr)
+
+        # Return sparse matrix
+        from scipy.sparse import csr_matrix
+
+        return (data, indices, indptr)
+
+    @staticmethod
+    def _to_matrix0(z, x, phase=0, group_phase=False, sparse=False):
         """Return the matrix matrix from symplectic representation.
 
         The Pauli is defined as :math:`P = (-i)^{phase + z.x} * Z^z.x^x`
@@ -703,3 +770,8 @@ def _make_data1(coeff, z_indices, indptr):
     negatives = np.bitwise_xor.reduce(np.unpackbits((z_indices & indptr)[:, None].view(np.uint8), axis=1), axis=1) == 1
     data[negatives] *= -1
     return data
+
+def equality_test(p1, p2):
+    (data1, indices1, indptr1) = p1
+    (data2, indices2, indptr2) = p2
+    return np.array_equal(data1,data2) and np.array_equal(indices1,indices2) and np.array_equal(indptr1,indptr2) 
