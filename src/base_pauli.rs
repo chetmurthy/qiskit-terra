@@ -158,15 +158,20 @@ pub fn make_data(py: Python,
 
 	if debug { println!("4: x_indices={} z_indices={}", x_indices, z_indices) ; }
 
-	let mut indptr = Vec::<u64>::new() ;
+
+    println!("BEFORE indptr: {} ms", now.elapsed().as_millis());
+
+
+	let mut indptr = vec![0 as u64;dim+1] ;
 	for i in 0..(dim+1) {
-	    indptr.push(i) ;
+	    indptr[i] = i as u64;
 	}
 
-	let mut indices = Vec::<u64>::new() ;
+    println!("BEFORE indices: {} ms", now.elapsed().as_millis());
+	let mut indices = vec![0 as u64;indptr.len()] ;
 
 	for i in 0..indptr.len() {
-	    indices.push(indptr[i] ^ x_indices) ;
+	    indices[i] = indptr[i] ^ x_indices ;
 	}
 	let coeff = match phase % 4 {
 	    0 => Complex64::new(1.0, 0.0),
