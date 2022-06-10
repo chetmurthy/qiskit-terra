@@ -46,4 +46,5 @@ print(repr(mat))
 
 import timeit
 
+print ("args: %s" % ((op.z, op.x, op._phase[0]),))
 print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, op._phase[0]), number=10))
