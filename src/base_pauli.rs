@@ -46,15 +46,15 @@ pub fn timed_make_data(py: Python,
 		 phase: i64,
 		 group_phase: bool
 ) -> PyResult<(PyObject, PyObject, PyObject)> {
-
+    let timings = false ;
     let now = Instant::now();
-    println!("START make_data()");
+    if timings { println!("START make_data()"); }
 
     // Calling a slow function, it may take a while
     let rv = make_data(py, z, x, phase, group_phase) ;
 
     let elapsed_time = now.elapsed();
-    println!("END ELAPSED make_data(): {} ms", elapsed_time.as_millis());
+    if timings { println!("END ELAPSED make_data(): {} ms", elapsed_time.as_millis()); }
     return rv ;
 }
 
@@ -72,6 +72,7 @@ pub fn rust_make_data(z: Vec<bool>,
 		 group_phase: bool
                 ) -> std::result::Result<(Vec<Complex64>, Vec<u64>, Vec<u64>), &'static str> {
     let debug = false ;
+    let timings = false ;
     let now = Instant::now();
 
     if z.len() != x.len() {
@@ -120,7 +121,7 @@ pub fn rust_make_data(z: Vec<bool>,
 	if debug { println!("4: x_indices={} z_indices={}", x_indices, z_indices) ; }
 
 
-    println!("BEFORE indptr: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indptr: {} ms", now.elapsed().as_millis()); }
 
 
 	let mut indptr = vec![0 as u64;dim+1] ;
@@ -128,7 +129,7 @@ pub fn rust_make_data(z: Vec<bool>,
 	    indptr[i] = i as u64;
 	}
 
-    println!("BEFORE indices: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indices: {} ms", now.elapsed().as_millis()); }
 	let mut indices = vec![0 as u64;indptr.len()] ;
 
 	for i in 0..indptr.len() {
@@ -141,10 +142,10 @@ pub fn rust_make_data(z: Vec<bool>,
 	    3 => Complex64::new(0.0, 1.0),
 	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
 	} ;
-	if debug { println!("coeff = {}", coeff) ; }
+	if timings { println!("coeff = {}", coeff) ; }
 
 
-    println!("BEFORE data: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE data: {} ms", now.elapsed().as_millis()); }
 
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
@@ -156,7 +157,7 @@ pub fn rust_make_data(z: Vec<bool>,
 		data.push(coeff) ;
 	    }
 	}
-    println!("AFTER data: {} ms", now.elapsed().as_millis());
+        if timings { println!("AFTER data: {} ms", now.elapsed().as_millis()); }
 
 	Ok((
             data,
@@ -173,15 +174,14 @@ pub fn timed_old_make_data(py: Python,
 		 phase: i64,
 		 group_phase: bool
 ) -> PyResult<(PyObject, PyObject, PyObject)> {
-
+    let timings = false ;
     let now = Instant::now();
-    println!("START old_make_data()");
+    if timings { println!("START old_make_data()"); }
 
     // Calling a slow function, it may take a while
     let rv = old_make_data(py, z, x, phase, group_phase) ;
 
-    let elapsed_time = now.elapsed();
-    println!("END ELAPSED old_make_data(): {} ms", elapsed_time.as_millis());
+    if timings { println!("END ELAPSED old_make_data(): {} ms", now.elapsed().as_millis()); }
     return rv ;
 }
 
@@ -193,6 +193,7 @@ pub fn old_make_data(py: Python,
 		 group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
     let debug = false ;
+    let timings = false ;
     let now = Instant::now();
 
     let z_array = z.as_array() ;
@@ -246,7 +247,7 @@ pub fn old_make_data(py: Python,
 	if debug { println!("4: x_indices={} z_indices={}", x_indices, z_indices) ; }
 
 
-    println!("BEFORE indptr: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indptr: {} ms", now.elapsed().as_millis()); }
 
 
 	let mut indptr = vec![0 as u64;dim+1] ;
@@ -254,7 +255,7 @@ pub fn old_make_data(py: Python,
 	    indptr[i] = i as u64;
 	}
 
-    println!("BEFORE indices: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indices: {} ms", now.elapsed().as_millis()); }
 	let mut indices = vec![0 as u64;indptr.len()] ;
 
 	for i in 0..indptr.len() {
@@ -270,7 +271,7 @@ pub fn old_make_data(py: Python,
 	if debug { println!("coeff = {}", coeff) ; }
 
 
-    println!("BEFORE data: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE data: {} ms", now.elapsed().as_millis()); }
 
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
@@ -282,7 +283,7 @@ pub fn old_make_data(py: Python,
 		data.push(coeff) ;
 	    }
 	}
-    println!("AFTER data: {} ms", now.elapsed().as_millis());
+        if timings { println!("AFTER data: {} ms", now.elapsed().as_millis()); }
 
 	Ok((
             data.into_pyarray(py).into(),
@@ -300,8 +301,6 @@ pub fn make_data(py: Python,
 		 phase: i64,
 		 group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
-    let debug = false ;
-    let now = Instant::now();
 
     let rv = rust_make_data(py2rust_boolarray(z.as_array()), py2rust_boolarray(x.as_array()), phase, group_phase) ;
     match rv {
