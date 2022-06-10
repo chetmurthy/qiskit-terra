@@ -12,9 +12,9 @@ def timer(msg, f):
     print('END ELAPSED %s: %.03fms' % (msg, 1000 * (t1-t0)))
     return rv
 
-def sparse_to_matrix(z,x,phase=0,group_phase=False):
+def sparse_to_matrix(z,x,coeff=1.0 + 0j, phase=0,group_phase=False):
     from qiskit._accelerate.base_pauli import make_data, old_make_data, timed_make_data, timed_old_make_data
-    p2 = make_data(z,x, phase, group_phase)
+    p2 = make_data(z,x, coeff, phase, group_phase)
     from scipy.sparse import csr_matrix
     num_qubits = z.size
     dim = 2**num_qubits
@@ -113,19 +113,21 @@ coeffs = np.array([
 
 spop = SparsePauliOp(oplist, coeffs = coeffs)
 op = oplist[0]
+coeff = coeffs[0]
 
 timer("to_matrix", lambda: op.to_matrix(sparse=True))
+timer("to_matrix(accel=False)", lambda: op.to_matrix(sparse=True, accel=False))
 
 timer("_to_matrix", lambda: BasePauli._to_matrix(op.z, op.x, op._phase[0], sparse=True))
 
 timer("_to_matrix0", lambda: BasePauli._to_matrix0(op.z, op.x, op._phase[0], sparse=True))
 
-mat = timer("sparse_to_matrix", lambda: sparse_to_matrix(op.z, op.x, op._phase[0]))
+mat = timer("sparse_to_matrix", lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]))
 print(repr(mat))
 
 import timeit
 
 print ("args: %s" % ((op.z, op.x, op._phase[0]),))
-print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, op._phase[0]), number=10))
+print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]), number=10))
 
 timer("spop.to_matrix(sparse=True)", lambda: spop.to_matrix(sparse=True))

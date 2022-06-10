@@ -694,7 +694,7 @@ class SparsePauliOp(LinearOp):
         return labels.tolist()
 
 
-    def to_matrix(self, sparse=False):
+    def to_matrix(self, sparse=False, accel=True):
         """Convert to a dense or sparse matrix.
 
         Args:
@@ -739,7 +739,7 @@ class SparsePauliOp(LinearOp):
         def addthem(height, a,b):
             return a+b
         bs = BStack(addthem)
-        for i in self.matrix_iter(sparse=sparse):
+        for i in self.matrix_iter(sparse=sparse, accel=accel):
             bs.add(i)
         mat = bs.flush()
         return mat
@@ -776,7 +776,7 @@ class SparsePauliOp(LinearOp):
 
         return LabelIterator(self)
 
-    def matrix_iter(self, sparse=False):
+    def matrix_iter(self, sparse=False, accel=True):
         """Return a matrix representation iterator.
 
         This is a lazy iterator that converts each term in the SparsePauliOp
@@ -794,16 +794,19 @@ class SparsePauliOp(LinearOp):
 
         class MatrixIterator(CustomIterator):
             """Matrix representation iteration and item access."""
+            def __init__(self, obj, accel=True):
+                super().__init__(obj)
+                self._accel = accel
 
             def __repr__(self):
                 return f"<SparsePauliOp_matrix_iterator at {hex(id(self))}>"
 
             def __getitem__(self, key):
                 coeff = self.obj.coeffs[key]
-                mat = self.obj.paulis[key].to_matrix(sparse)
+                mat = self.obj.paulis[key].to_matrix(coeff=None, sparse=sparse, accel=self._accel)
                 return coeff * mat
 
-        return MatrixIterator(self)
+        return MatrixIterator(self, accel=accel)
 
 
 # Update docstrings for API docs
