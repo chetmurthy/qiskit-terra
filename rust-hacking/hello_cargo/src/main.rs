@@ -125,11 +125,11 @@ fn main() {
     let args = Args::parse();
 
    let z = vec![ true, false, false,  true, false, false, false, false, false,
-       false, false, false, false, false, false, false, false, false,
-       false, false, false, false] ;
+                 false, false, false, false, false, false, false, false, false,
+                 false, false, false, false] ;
     let x = vec![ true,  true,  true,  true, false, false, false, false, false,
-       false, false, false, false, false, false, false, false, false,
-              false, false, false, false] ;
+                  false, false, false, false, false, false, false, false, false,
+                  false, false, false, false] ;
     let phase = 2 ;
     let group_phase = false ;
 
