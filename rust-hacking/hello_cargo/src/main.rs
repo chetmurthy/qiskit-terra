@@ -14,11 +14,13 @@ struct Args {
 }
 
 pub fn rust_make_data(z: &Vec<bool>,
-                 x: &Vec<bool>,
-		 phase: i64,
-		 group_phase: bool
+                      x: &Vec<bool>,
+                      coeff: Complex64,
+		      phase: i64,
+		      group_phase: bool
                 ) -> std::result::Result<(Vec<Complex64>, Vec<u64>, Vec<u64>), &'static str> {
     let debug = false ;
+    let timings = false ;
     let now = Instant::now();
 
     if z.len() != x.len() {
@@ -67,7 +69,7 @@ pub fn rust_make_data(z: &Vec<bool>,
 	if debug { println!("4: x_indices={} z_indices={}", x_indices, z_indices) ; }
 
 
-    println!("BEFORE indptr: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indptr: {} ms", now.elapsed().as_millis()); }
 
 
 	let mut indptr = vec![0 as u64;dim+1] ;
@@ -75,23 +77,23 @@ pub fn rust_make_data(z: &Vec<bool>,
 	    indptr[i] = i as u64;
 	}
 
-    println!("BEFORE indices: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE indices: {} ms", now.elapsed().as_millis()); }
 	let mut indices = vec![0 as u64;indptr.len()] ;
 
 	for i in 0..indptr.len() {
 	    indices[i] = indptr[i] ^ x_indices ;
 	}
 	let coeff = match phase % 4 {
-	    0 => Complex64::new(1.0, 0.0),
-	    1 => Complex64::new(0.0, -1.0),
-	    2 => Complex64::new(-1.0, 0.0),
-	    3 => Complex64::new(0.0, 1.0),
-	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
+	    0 => Complex64::new(1.0, 0.0) * coeff,
+	    1 => Complex64::new(0.0, -1.0) * coeff,
+	    2 => Complex64::new(-1.0, 0.0) * coeff,
+	    3 => Complex64::new(0.0, 1.0) * coeff,
+	    _ => coeff // really should be assert!(false)
 	} ;
-	if debug { println!("coeff = {}", coeff) ; }
+	if timings { println!("coeff = {}", coeff) ; }
 
 
-    println!("BEFORE data: {} ms", now.elapsed().as_millis());
+        if timings { println!("BEFORE data: {} ms", now.elapsed().as_millis()); }
 
 	let mut data = Vec::new() ;
 	for indp in indptr.iter() {
@@ -103,7 +105,7 @@ pub fn rust_make_data(z: &Vec<bool>,
 		data.push(coeff) ;
 	    }
 	}
-    println!("AFTER data: {} ms", now.elapsed().as_millis());
+        if timings { println!("AFTER data: {} ms", now.elapsed().as_millis()); }
 
 	Ok((
             data,
@@ -132,10 +134,11 @@ fn main() {
                   false, false, false, false] ;
     let phase = 2 ;
     let group_phase = false ;
+    let coeff = Complex64::new(1.0, 0.0) ;
 
     let now = Instant::now();
-    for i in 0..args.iterations {
-        rust_make_data(&z, &x, phase, group_phase) ;
+    for _i in 0..args.iterations {
+        _ = rust_make_data(&z, &x, coeff, phase, group_phase) ;
     }
     println!("END {} iterations rust_make_data: {} ms", args.iterations, now.elapsed().as_millis());
 }

@@ -125,11 +125,30 @@ timer("_to_matrix0", lambda: BasePauli._to_matrix0(op.z, op.x, op._phase[0], spa
 mat = timer("sparse_to_matrix", lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]))
 print(repr(mat))
 
+def doit():
+    coeff = 1.0 + 0j
+    for i in range(len(oplist)):
+        _ = oplist[i].to_matrix(coeff=coeff, sparse=True)
+
+def doit_slow_coeff():
+    for i in range(len(oplist)):
+        _ = coeffs[i] * oplist[i].to_matrix(sparse=True)
+
+def doit_fast_coeff():
+    for i in range(len(oplist)):
+        _ = oplist[i].to_matrix(coeff=coeffs[i], sparse=True)
+
+timer("doit", doit)
+timer("doit_slow_coeff", doit_slow_coeff)
+timer("doit_fast_coeff", doit_fast_coeff)
+
+timer("spop.to_matrix(sparse=True)", lambda: spop.to_matrix(sparse=True))
+
 import timeit
+
 
 print(timeit.timeit(lambda: coeff * mat, number=1000))
 
 print ("args: %s" % ((op.z, op.x, op._phase[0]),))
 print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]), number=10))
 
-timer("spop.to_matrix(sparse=True)", lambda: spop.to_matrix(sparse=True))
