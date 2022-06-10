@@ -803,8 +803,8 @@ class SparsePauliOp(LinearOp):
 
             def __getitem__(self, key):
                 coeff = self.obj.coeffs[key]
-                mat = self.obj.paulis[key].to_matrix(coeff=None, sparse=sparse, accel=self._accel)
-                return coeff * mat
+                mat = self.obj.paulis[key].to_matrix(coeff=coeff, sparse=sparse, accel=self._accel)
+                return mat
 
         return MatrixIterator(self, accel=accel)
 

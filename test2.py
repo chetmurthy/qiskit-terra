@@ -127,6 +127,8 @@ print(repr(mat))
 
 import timeit
 
+print(timeit.timeit(lambda: coeff * mat, number=1000))
+
 print ("args: %s" % ((op.z, op.x, op._phase[0]),))
 print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]), number=10))
 
