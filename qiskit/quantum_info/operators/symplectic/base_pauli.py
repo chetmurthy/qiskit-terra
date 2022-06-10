@@ -394,13 +394,15 @@ class BasePauli(BaseOperator, AdjointMixin, MultiplyMixin):
         return base_z, base_x, base_phase
 
     @staticmethod
-    def _to_matrix(z, x, phase=0, group_phase=False, sparse=False):
+    def _to_matrix(z, x, phase=0, group_phase=False, coeff=None, sparse=False):
         if not sparse:
             rv = BasePauli._to_matrix0(z,x, phase,group_phase, sparse)
+            if coeff is not None: rv = coeff * rv
             return rv
         else:
+            if coeff is None: coeff = 1.0 + 0j
             from qiskit._accelerate.base_pauli import make_data
-            p2 = make_data(z,x, phase, group_phase)
+            p2 = make_data(z,x, coeff, phase, group_phase)
             from scipy.sparse import csr_matrix
             num_qubits = z.size
             dim = 2**num_qubits

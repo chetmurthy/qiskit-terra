@@ -412,7 +412,7 @@ class Pauli(BasePauli):
         """
         return self._to_label(self.z, self.x, self._phase[0])
 
-    def to_matrix(self, sparse=False):
+    def to_matrix(self, coeff=None, sparse=False):
         r"""Convert to a Numpy array or sparse CSR matrix.
 
         Args:
@@ -422,7 +422,7 @@ class Pauli(BasePauli):
         Returns:
             array: The Pauli matrix.
         """
-        return self._to_matrix(self.z, self.x, self._phase[0], sparse=sparse)
+        return self._to_matrix(self.z, self.x, self._phase[0], coeff=coeff, sparse=sparse)
 
     def to_instruction(self):
         """Convert to Pauli circuit instruction."""
@@ -774,7 +774,7 @@ class Pauli(BasePauli):
         "`to_spmatrix` is deprecated and will be removed no earlier than "
         "3 months after the release date. Use `to_matrix(sparse=True)` instead."
     )
-    def to_spmatrix(self):
+    def to_spmatrix(self, coeff=None):
         r"""
         DEPRECATED Convert Pauli to a sparse matrix representation (CSR format).
 
@@ -785,7 +785,7 @@ class Pauli(BasePauli):
             scipy.sparse.csr_matrix: a sparse matrix with CSR format that
             represents the pauli.
         """
-        return self.to_matrix(sparse=True)
+        return self.to_matrix(coeff=coeff, sparse=True)
 
     @deprecate_function(
         "`kron` is deprecated and will be removed no earlier than "

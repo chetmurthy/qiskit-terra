@@ -41,17 +41,18 @@ use numpy::{IntoPyArray, PyReadonlyArray1, PyArray1};
 
 #[pyfunction]
 pub fn timed_make_data(py: Python,
-       		 z: PyReadonlyArray1<bool>,
-                 x: PyReadonlyArray1<bool>,
-		 phase: i64,
-		 group_phase: bool
+       		       z: PyReadonlyArray1<bool>,
+                       x: PyReadonlyArray1<bool>,
+                       coeff: Complex64,
+		       phase: i64,
+		       group_phase: bool
 ) -> PyResult<(PyObject, PyObject, PyObject)> {
     let timings = false ;
     let now = Instant::now();
     if timings { println!("START make_data()"); }
 
     // Calling a slow function, it may take a while
-    let rv = make_data(py, z, x, phase, group_phase) ;
+    let rv = make_data(py, z, x, coeff, phase, group_phase) ;
 
     let elapsed_time = now.elapsed();
     if timings { println!("END ELAPSED make_data(): {} ms", elapsed_time.as_millis()); }
@@ -67,9 +68,10 @@ pub fn py2rust_boolarray(v : ndarray::ArrayBase<ndarray::ViewRepr<&bool>, ndarra
 }
 
 pub fn rust_make_data(z: Vec<bool>,
-                 x: Vec<bool>,
-		 phase: i64,
-		 group_phase: bool
+                      x: Vec<bool>,
+                      coeff: Complex64,
+		      phase: i64,
+		      group_phase: bool
                 ) -> std::result::Result<(Vec<Complex64>, Vec<u64>, Vec<u64>), &'static str> {
     let debug = false ;
     let timings = false ;
@@ -136,11 +138,11 @@ pub fn rust_make_data(z: Vec<bool>,
 	    indices[i] = indptr[i] ^ x_indices ;
 	}
 	let coeff = match phase % 4 {
-	    0 => Complex64::new(1.0, 0.0),
-	    1 => Complex64::new(0.0, -1.0),
-	    2 => Complex64::new(-1.0, 0.0),
-	    3 => Complex64::new(0.0, 1.0),
-	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
+	    0 => Complex64::new(1.0, 0.0) * coeff,
+	    1 => Complex64::new(0.0, -1.0) * coeff,
+	    2 => Complex64::new(-1.0, 0.0) * coeff,
+	    3 => Complex64::new(0.0, 1.0) * coeff,
+	    _ => coeff // really should be assert!(false)
 	} ;
 	if timings { println!("coeff = {}", coeff) ; }
 
@@ -169,17 +171,18 @@ pub fn rust_make_data(z: Vec<bool>,
 
 #[pyfunction]
 pub fn timed_old_make_data(py: Python,
-       		 z: PyReadonlyArray1<bool>,
-                 x: PyReadonlyArray1<bool>,
-		 phase: i64,
-		 group_phase: bool
+       		           z: PyReadonlyArray1<bool>,
+                           x: PyReadonlyArray1<bool>,
+                           coeff: Complex64,
+		           phase: i64,
+		           group_phase: bool
 ) -> PyResult<(PyObject, PyObject, PyObject)> {
     let timings = false ;
     let now = Instant::now();
     if timings { println!("START old_make_data()"); }
 
     // Calling a slow function, it may take a while
-    let rv = old_make_data(py, z, x, phase, group_phase) ;
+    let rv = old_make_data(py, z, x, coeff, phase, group_phase) ;
 
     if timings { println!("END ELAPSED old_make_data(): {} ms", now.elapsed().as_millis()); }
     return rv ;
@@ -187,10 +190,11 @@ pub fn timed_old_make_data(py: Python,
 
 #[pyfunction]
 pub fn old_make_data(py: Python,
-       		 z: PyReadonlyArray1<bool>,
-                 x: PyReadonlyArray1<bool>,
-		 phase: i64,
-		 group_phase: bool
+       		     z: PyReadonlyArray1<bool>,
+                     x: PyReadonlyArray1<bool>,
+                     coeff: Complex64,
+		     phase: i64,
+		     group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
     let debug = false ;
     let timings = false ;
@@ -262,11 +266,11 @@ pub fn old_make_data(py: Python,
 	    indices[i] = indptr[i] ^ x_indices ;
 	}
 	let coeff = match phase % 4 {
-	    0 => Complex64::new(1.0, 0.0),
-	    1 => Complex64::new(0.0, -1.0),
-	    2 => Complex64::new(-1.0, 0.0),
-	    3 => Complex64::new(0.0, 1.0),
-	    _ => Complex64::new(1.0, 0.0) // really should be assert!(false)
+	    0 => Complex64::new(1.0, 0.0) * coeff,
+	    1 => Complex64::new(0.0, -1.0) * coeff,
+	    2 => Complex64::new(-1.0, 0.0) * coeff,
+	    3 => Complex64::new(0.0, 1.0) * coeff,
+	    _ => coeff // really should be assert!(false)
 	} ;
 	if debug { println!("coeff = {}", coeff) ; }
 
@@ -298,11 +302,12 @@ pub fn old_make_data(py: Python,
 pub fn make_data(py: Python,
        		 z: PyReadonlyArray1<bool>,
                  x: PyReadonlyArray1<bool>,
+                 coeff: Complex64,
 		 phase: i64,
 		 group_phase: bool
                 ) -> PyResult<(PyObject, PyObject, PyObject)> {
 
-    let rv = rust_make_data(py2rust_boolarray(z.as_array()), py2rust_boolarray(x.as_array()), phase, group_phase) ;
+    let rv = rust_make_data(py2rust_boolarray(z.as_array()), py2rust_boolarray(x.as_array()), coeff, phase, group_phase) ;
     match rv {
 	std::result::Result::Err(msg) => Err(PyException::new_err(msg)),
 	std::result::Result::Ok((data, indices, indptr)) =>
