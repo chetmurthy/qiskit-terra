@@ -1,5 +1,17 @@
 use std::time::Instant;
 use num_complex::Complex64;
+use clap::Parser;
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    #[clap(short, long, default_value_t = 1)]
+    iterations: u8,
+
+    #[clap(short = 'v')]
+    verbose: bool,
+}
 
 pub fn rust_make_data(z: &Vec<bool>,
                  x: &Vec<bool>,
@@ -110,6 +122,8 @@ args: (array([ True, False, False,  True, False, False, False, False, False,
 */
 
 fn main() {
+    let args = Args::parse();
+
    let z = vec![ true, false, false,  true, false, false, false, false, false,
        false, false, false, false, false, false, false, false, false,
        false, false, false, false] ;
@@ -120,8 +134,8 @@ fn main() {
     let group_phase = false ;
 
     let now = Instant::now();
-    for i in 0..10 {
+    for i in 0..args.iterations {
         rust_make_data(&z, &x, phase, group_phase) ;
     }
-    println!("END 10 iterations rust_make_data: {} ms", now.elapsed().as_millis());
+    println!("END {} iterations rust_make_data: {} ms", args.iterations, now.elapsed().as_millis());
 }
