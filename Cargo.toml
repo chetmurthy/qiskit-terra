@@ -19,6 +19,7 @@ indexmap = "1.8.2"
 ahash = "0.7.6"
 num-complex = "0.4"
 sprs = "0.11.0"
+qrusty = { path = "../qrusty" }
 
 [dependencies.pyo3]
 version = "0.16.5"

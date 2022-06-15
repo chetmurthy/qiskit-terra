@@ -22,11 +22,51 @@ def sparse_to_matrix(z,x,coeff=1.0 + 0j, phase=0,group_phase=False):
     rv = csr_matrix(p2, shape=(dim, dim), dtype=complex)
     return rv
 
-def qrusty_to_matrix(label, coeff=1.0+0.0j):
+def qrusty_Pauli_to_matrix(label, coeff=1.0+0.0j):
     from qiskit._accelerate.base_pauli import qrusty_Pauli_make_data
     (num_qubits, data, indices, indptr) = qrusty_Pauli_make_data(label, coeff)
-    print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
-          (num_qubits, data, indices, indptr))
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
+def qrusty_SparsePauliOp_to_matrix(labels, coeffs):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data(labels, coeffs)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
+def qrusty_SparsePauliOp_to_matrix_binary(labels, coeffs):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_binary
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_binary(labels, coeffs)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
+def qrusty_SparsePauliOp_to_matrix_accel(labels, coeffs):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_accel
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_accel(labels, coeffs)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
+def qrusty_SparsePauliOp_to_matrix_rayon(labels, coeffs):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_rayon
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_rayon(labels, coeffs)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
     from scipy.sparse import csr_matrix
     dim = 2**num_qubits
     rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
@@ -35,16 +75,32 @@ def qrusty_to_matrix(label, coeff=1.0+0.0j):
 def equality_test(p1, p2):
     (data1, indices1, indptr1) = p1
     (data2, indices2, indptr2) = p2
-    return np.array_equal(data1,data2) and np.array_equal(indices1,indices2) and np.array_equal(indptr1,indptr2) 
+    return np.allclose(data1,data2) and np.array_equal(indices1,indices2) and np.array_equal(indptr1,indptr2) 
 
-def spmat_equal(m1, m2):
+def csr_maxdiff(a, b, rtol=1e-5):
+    c = np.abs(np.abs(a - b) - rtol * np.abs(b))
+    return c.max()
+
+def csr_allclose(a, b, rtol=1e-5, atol = 1e-8):
+    maxdiff = csr_maxdiff(a, b, rtol=rtol)
+    if maxdiff <= atol: return True
+    else:
+        print("csr_allclose: maxdiff=%s" % (maxdiff,))
+        return False
+
+def spmat_equal(m1, m2, atol = 1e-6):
+    return csr_allclose(m1, m2, atol=atol)
+
+def old_spmat_equal(m1, m2):
+    m1.eliminate_zeros()
+    m2.eliminate_zeros()
     if m1.shape != m2.shape: return False
-    if not np.array_equal(m1.data,m2.data): return False
+    if not np.allclose(m1.data,m2.data): return False
     if not np.array_equal(m1.indices,m2.indices): return False
     if not np.array_equal(m1.indptr,m2.indptr): return False
     return True
 
-oplist = PauliList([
+labels = [
     'IIIIIIIIIIIIIIIIIIYXXY', 'IIIIIIIIIIIIIIIIIIYYYY',
     'IIIIIIIIIIIIIIIIIIXXYY', 'IIIIIIIIIIIIIIIIIIYYXX',
     'IIIIIIIIIIIIIIIIIIXXXX', 'IIIIIIIIIIIIIIIIIIXYYX',
@@ -94,7 +150,7 @@ oplist = PauliList([
     'IIIIIIIIIIIIIIIIXXIIYY', 'IIIIIIIIIIIIIIIIYYIIXX',
     'IIIIIIIIIIIIIIIIXXIIXX', 'IIIIIIIIIIIIIIIIXYIIYX',
     'IIIIIIIIIIIIIIIYZXIIXY', 'IIIIIIIIIIIIIIIYZYIIYY',
-    'IIIIIIIIIIIIIIIXZXIIYY', 'IIIIIIIIIIIIIIIYZYIIXX'])
+    'IIIIIIIIIIIIIIIXZXIIYY', 'IIIIIIIIIIIIIIIYZYIIXX']
 
 coeffs = np.array([
     -2.38476799e-06+0.j, -2.54069063e-06+0.j, -1.55922634e-07+0.j,
@@ -133,47 +189,30 @@ coeffs = np.array([
     -2.10901360e-05+0.j
 ])
 
+def test_pauli(i):
+    op = Pauli(labels[i])
+    mat1 = op.to_matrix(sparse=True)
+    mat1 = coeffs[i] * mat1
+    mat2 = qrusty_Pauli_to_matrix(labels[i], coeffs[i])
+    if not spmat_equal(mat1, mat2):
+        print("%s: label=%s coeff=%s not equal\n" % (i, labels[i], coeffs[i]))
 
-spop = SparsePauliOp(oplist, coeffs = coeffs)
-op = oplist[0]
-coeff = coeffs[0]
+def test_pauli_list(ll, cl):
+    spop = SparsePauliOp(ll, coeffs = cl)
+    mat1 = spop.to_matrix(sparse=True)
+    mat2 = qrusty_SparsePauliOp_to_matrix_rayon(ll, cl)
+    if not spmat_equal(mat1, mat2):
+        print("test_pauli_list(%s, %s): not equal\n" % (ll, cl))
 
-print (("op=%s\nz=%s\nx=%s\nphase=%s\n" % (op, op.z, op.x, op._phase[0])))
-
-timer("to_matrix", lambda: op.to_matrix(sparse=True))
-timer("to_matrix(accel=False)", lambda: op.to_matrix(sparse=True, accel=False))
-
-timer("_to_matrix", lambda: BasePauli._to_matrix(op.z, op.x, op._phase[0], sparse=True))
-
-timer("_to_matrix0", lambda: BasePauli._to_matrix0(op.z, op.x, op._phase[0], sparse=True))
-
-mat = timer("sparse_to_matrix", lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]))
-print(repr(mat))
-
-def doit():
-    coeff = 1.0 + 0j
-    for i in range(len(oplist)):
-        _ = oplist[i].to_matrix(coeff=coeff, sparse=True)
-
-def doit_slow_coeff():
-    for i in range(len(oplist)):
-        _ = coeffs[i] * oplist[i].to_matrix(sparse=True)
-
-def doit_fast_coeff():
-    for i in range(len(oplist)):
-        _ = oplist[i].to_matrix(coeff=coeffs[i], sparse=True)
-
-timer("doit", doit)
-timer("doit_slow_coeff", doit_slow_coeff)
-timer("doit_fast_coeff", doit_fast_coeff)
-
-timer("spop.to_matrix(sparse=True)", lambda: spop.to_matrix(sparse=True))
-
-import timeit
+def test_pauli_range(i):
+    print("test_pauli_range(%s)" % (i,))
+    ll = labels[0:i+1]
+    cl = coeffs[0:i+1]
+    test_pauli_list(ll, cl)
 
 
-print(timeit.timeit(lambda: coeff * mat, number=1000))
-
-print ("args: %s" % ((op.z, op.x, op._phase[0]),))
-print(timeit.timeit(lambda: sparse_to_matrix(op.z, op.x, coeff=coeff, phase=op._phase[0]), number=10))
-
+if __name__ == '__main__':
+    test_pauli_range(100)
+    exit
+    for i in range(len(labels)):
+        timer(("i=%s" % (i,)), lambda: test_pauli_range(i))

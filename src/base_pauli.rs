@@ -319,6 +319,162 @@ pub fn make_data(py: Python,
     }
 }
 
+use qrusty::Pauli;
+use qrusty::PauliList;
+use qrusty::SparsePauliOp;
+
+#[pyfunction]
+pub fn qrusty_Pauli_make_data(
+    py: Python,
+    s : String,
+    coeff: Complex64,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    let p = Pauli::new(&s).unwrap() ;
+    let mut sp_mat = p.to_matrix() ;
+    sp_mat.scale(coeff) ;
+    let num_qubits = p.num_qubits() as u64 ;
+    let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+}
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::new(
+            PauliList::from_labels(&l).unwrap(),
+            coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix() ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data_binary(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::new(
+            PauliList::from_labels(&l).unwrap(),
+            coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix_binary() ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data_accel(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::new(
+            PauliList::from_labels(&l).unwrap(),
+            coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix_accel() ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data_rayon(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::new(
+            PauliList::from_labels(&l).unwrap(),
+            coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix_rayon() ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
 
 #[pymodule]
 pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
@@ -326,5 +482,10 @@ pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(timed_make_data))?;
     m.add_wrapped(wrap_pyfunction!(old_make_data))?;
     m.add_wrapped(wrap_pyfunction!(timed_old_make_data))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_Pauli_make_data))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_binary))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_accel))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_rayon))?;
     Ok(())
 }
