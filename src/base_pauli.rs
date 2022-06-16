@@ -359,7 +359,7 @@ pub fn qrusty_SparsePauliOp_make_data(
         for s in labels.iter() { l.push(s) } ;
         let spop = SparsePauliOp::new(
             PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+            &coeffs) ;
 
         let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix() ;
@@ -392,7 +392,7 @@ pub fn qrusty_SparsePauliOp_make_data_binary(
         for s in labels.iter() { l.push(s) } ;
         let spop = SparsePauliOp::new(
             PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+            &coeffs) ;
 
         let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_binary() ;
@@ -425,7 +425,7 @@ pub fn qrusty_SparsePauliOp_make_data_accel(
         for s in labels.iter() { l.push(s) } ;
         let spop = SparsePauliOp::new(
             PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+            &coeffs) ;
 
         let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_accel() ;
@@ -458,7 +458,7 @@ pub fn qrusty_SparsePauliOp_make_data_rayon(
         for s in labels.iter() { l.push(s) } ;
         let spop = SparsePauliOp::new(
             PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+            &coeffs) ;
 
         let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_rayon() ;

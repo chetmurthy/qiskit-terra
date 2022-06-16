@@ -4,6 +4,7 @@ import scipy.sparse as scisparse
 from qiskit.quantum_info.operators.symplectic import *
 from qiskit.quantum_info.operators.symplectic.base_pauli import *
 from qiskit.quantum_info.operators.symplectic.pauli import *
+from fixtures import *
 
 def timer(msg, f):
     t0 = time.time()
