@@ -73,6 +73,16 @@ def qrusty_SparsePauliOp_to_matrix_rayon(labels, coeffs):
     rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
     return rv
 
+def qrusty_SparsePauliOp_to_matrix_rayon_chunked(labels, coeffs, step=1000):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_rayon_rayon
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_rayon(labels, coeffs, step)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
 def equality_test(p1, p2):
     (data1, indices1, indptr1) = p1
     (data2, indices2, indptr2) = p2

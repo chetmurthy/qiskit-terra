@@ -320,7 +320,6 @@ pub fn make_data(py: Python,
 }
 
 use qrusty::Pauli;
-use qrusty::PauliList;
 use qrusty::SparsePauliOp;
 
 #[pyfunction]
@@ -357,8 +356,8 @@ pub fn qrusty_SparsePauliOp_make_data(
     else {
         let mut l : Vec<&str> = Vec::new() ;
         for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
+        let spop = SparsePauliOp::from_labels(
+            &l,
             &coeffs) ;
 
         let spop = spop.unwrap() ;
@@ -390,8 +389,8 @@ pub fn qrusty_SparsePauliOp_make_data_binary(
     else {
         let mut l : Vec<&str> = Vec::new() ;
         for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
+        let spop = SparsePauliOp::from_labels(
+            &l,
             &coeffs) ;
 
         let spop = spop.unwrap() ;
@@ -423,8 +422,8 @@ pub fn qrusty_SparsePauliOp_make_data_accel(
     else {
         let mut l : Vec<&str> = Vec::new() ;
         for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
+        let spop = SparsePauliOp::from_labels(
+            &l,
             &coeffs) ;
 
         let spop = spop.unwrap() ;
@@ -456,12 +455,45 @@ pub fn qrusty_SparsePauliOp_make_data_rayon(
     else {
         let mut l : Vec<&str> = Vec::new() ;
         for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
+        let spop = SparsePauliOp::from_labels(
+            &l,
             &coeffs) ;
 
         let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_rayon() ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data_rayon_chunked(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+    step: usize,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l : Vec<&str> = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::from_labels(
+            &l,
+            &coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix_rayon_chunked(step) ;
 
         let num_qubits = spop.num_qubits() as u64 ;
         let (indptr, indices, data) = sp_mat.into_raw_storage();
@@ -487,5 +519,6 @@ pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_binary))?;
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_accel))?;
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_rayon))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_rayon_chunked))?;
     Ok(())
 }
