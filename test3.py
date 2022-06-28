@@ -4,6 +4,7 @@ import scipy.sparse as scisparse
 from qiskit.quantum_info.operators.symplectic import *
 from qiskit.quantum_info.operators.symplectic.base_pauli import *
 from qiskit.quantum_info.operators.symplectic.pauli import *
+from fixtures import *
 
 def timer(msg, f):
     t0 = time.time()
@@ -65,6 +66,16 @@ def qrusty_SparsePauliOp_to_matrix_accel(labels, coeffs):
 def qrusty_SparsePauliOp_to_matrix_rayon(labels, coeffs):
     from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_rayon
     (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_rayon(labels, coeffs)
+    #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
+    #      (num_qubits, data, indices, indptr))
+    from scipy.sparse import csr_matrix
+    dim = 2**num_qubits
+    rv = csr_matrix((data, indices, indptr), shape=(dim, dim), dtype=complex)
+    return rv
+
+def qrusty_SparsePauliOp_to_matrix_rayon_chunked(labels, coeffs, step=1000):
+    from qiskit._accelerate.base_pauli import qrusty_SparsePauliOp_make_data_rayon_rayon
+    (num_qubits, data, indices, indptr) = qrusty_SparsePauliOp_make_data_rayon(labels, coeffs, step)
     #print("sparse_to_matrix:\n\tnum_qubits: %s\n\tdata: %s\n\tindices: %s\n\tindptr: %s" %
     #      (num_qubits, data, indices, indptr))
     from scipy.sparse import csr_matrix

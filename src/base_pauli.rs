@@ -10,6 +10,7 @@
 // copyright notice, and modified files need to carry a notice indicating
 // that they have been altered from the originals.
 
+#![allow(non_snake_case)]
 use std::time::Instant;
 
 use pyo3::prelude::*;
@@ -18,7 +19,7 @@ use pyo3::Python;
 use pyo3::exceptions::PyException;
 
 use num_complex::Complex64;
-use numpy::{IntoPyArray, PyReadonlyArray1, PyArray1};
+use numpy::{IntoPyArray, PyReadonlyArray1};
 
 /// Find the unique elements of an array.
 ///
@@ -358,6 +359,14 @@ pub fn qrusty_SparsePauliOp_make_data(
 
         let sp_mat = spop.to_matrix() ;
 
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("BEFORE nz={} nnz={}", nz, nnz) ;
+        let sp_mat = qrusty::util::csmatrix_eliminate_zeroes(&sp_mat, 1e-7) ;
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("AFTER nz={} nnz={}", nz, nnz) ;
+
         let num_qubits = spop.num_qubits() as u64 ;
         let (indptr, indices, data) = sp_mat.into_raw_storage();
 
@@ -386,6 +395,14 @@ pub fn qrusty_SparsePauliOp_make_data_binary(
         let spop = SparsePauliOp::new(members, &coeffs)? ;
 
         let sp_mat = spop.to_matrix_binary() ;
+
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("BEFORE nz={} nnz={}", nz, nnz) ;
+        let sp_mat = qrusty::util::csmatrix_eliminate_zeroes(&sp_mat, 1e-7) ;
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("AFTER nz={} nnz={}", nz, nnz) ;
 
         let num_qubits = spop.num_qubits() as u64 ;
         let (indptr, indices, data) = sp_mat.into_raw_storage();
@@ -416,6 +433,14 @@ pub fn qrusty_SparsePauliOp_make_data_accel(
 
         let sp_mat = spop.to_matrix_accel() ;
 
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("BEFORE nz={} nnz={}", nz, nnz) ;
+        let sp_mat = qrusty::util::csmatrix_eliminate_zeroes(&sp_mat, 1e-7) ;
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("AFTER nz={} nnz={}", nz, nnz) ;
+
         let num_qubits = spop.num_qubits() as u64 ;
         let (indptr, indices, data) = sp_mat.into_raw_storage();
 
@@ -445,6 +470,55 @@ pub fn qrusty_SparsePauliOp_make_data_rayon(
 
         let sp_mat = spop.to_matrix_rayon() ;
 
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("BEFORE nz={} nnz={}", nz, nnz) ;
+        let sp_mat = qrusty::util::csmatrix_eliminate_zeroes(&sp_mat, 1e-7) ;
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("AFTER nz={} nnz={}", nz, nnz) ;
+
+        let num_qubits = spop.num_qubits() as u64 ;
+        let (indptr, indices, data) = sp_mat.into_raw_storage();
+
+    Ok((
+        num_qubits,
+	data.into_pyarray(py).into(),
+	indices.into_pyarray(py).into(),
+	indptr.into_pyarray(py).into(),
+    ))
+    }
+}
+
+#[pyfunction]
+pub fn qrusty_SparsePauliOp_make_data_rayon_chunked(
+    py: Python,
+    labels : Vec<String>,
+    coeffs: Vec<Complex64>,
+    step: usize,
+) -> PyResult<(u64, PyObject, PyObject, PyObject)> {
+
+    if labels.len() != coeffs.len() {
+       Err(PyException::new_err("labels and coeffs have differing lengths"))
+    }
+    else {
+        let mut l : Vec<&str> = Vec::new() ;
+        for s in labels.iter() { l.push(s) } ;
+        let spop = SparsePauliOp::from_labels(
+            &l,
+            &coeffs) ;
+
+        let spop = spop.unwrap() ;
+        let sp_mat = spop.to_matrix_rayon_chunked(step) ;
+
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("BEFORE nz={} nnz={}", nz, nnz) ;
+        let sp_mat = qrusty::util::csmatrix_eliminate_zeroes(&sp_mat, 1e-7) ;
+        let nz = qrusty::util::csmatrix_nz(&sp_mat, 1e-7) ;
+        let nnz = sp_mat.nnz() ;
+        println!("AFTER nz={} nnz={}", nz, nnz) ;
+
         let num_qubits = spop.num_qubits() as u64 ;
         let (indptr, indices, data) = sp_mat.into_raw_storage();
 
@@ -469,5 +543,6 @@ pub fn base_pauli(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_binary))?;
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_accel))?;
     m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_rayon))?;
+    m.add_wrapped(wrap_pyfunction!(qrusty_SparsePauliOp_make_data_rayon_chunked))?;
     Ok(())
 }
