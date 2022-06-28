@@ -319,9 +319,7 @@ pub fn make_data(py: Python,
     }
 }
 
-use qrusty::Pauli;
-use qrusty::PauliList;
-use qrusty::SparsePauliOp;
+use qrusty::{ Pauli, SparsePauliOp };
 
 #[pyfunction]
 pub fn qrusty_Pauli_make_data(
@@ -355,13 +353,9 @@ pub fn qrusty_SparsePauliOp_make_data(
        Err(PyException::new_err("labels and coeffs have differing lengths"))
     }
     else {
-        let mut l : Vec<&str> = Vec::new() ;
-        for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+	let members = labels.iter().map(|l| Pauli::new(l)).collect::<Result<Vec<Pauli>, _>>()? ;
+        let spop = SparsePauliOp::new(members, &coeffs)? ;
 
-        let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix() ;
 
         let num_qubits = spop.num_qubits() as u64 ;
@@ -388,13 +382,9 @@ pub fn qrusty_SparsePauliOp_make_data_binary(
        Err(PyException::new_err("labels and coeffs have differing lengths"))
     }
     else {
-        let mut l : Vec<&str> = Vec::new() ;
-        for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+	let members = labels.iter().map(|l| Pauli::new(l)).collect::<Result<Vec<Pauli>, _>>()? ;
+        let spop = SparsePauliOp::new(members, &coeffs)? ;
 
-        let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_binary() ;
 
         let num_qubits = spop.num_qubits() as u64 ;
@@ -421,13 +411,9 @@ pub fn qrusty_SparsePauliOp_make_data_accel(
        Err(PyException::new_err("labels and coeffs have differing lengths"))
     }
     else {
-        let mut l : Vec<&str> = Vec::new() ;
-        for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+	let members = labels.iter().map(|l| Pauli::new(l)).collect::<Result<Vec<Pauli>, _>>()? ;
+        let spop = SparsePauliOp::new(members, &coeffs)? ;
 
-        let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_accel() ;
 
         let num_qubits = spop.num_qubits() as u64 ;
@@ -454,13 +440,9 @@ pub fn qrusty_SparsePauliOp_make_data_rayon(
        Err(PyException::new_err("labels and coeffs have differing lengths"))
     }
     else {
-        let mut l : Vec<&str> = Vec::new() ;
-        for s in labels.iter() { l.push(s) } ;
-        let spop = SparsePauliOp::new(
-            PauliList::from_labels_str(&l).unwrap(),
-            coeffs) ;
+	let members = labels.iter().map(|l| Pauli::new(l)).collect::<Result<Vec<Pauli>, _>>()? ;
+        let spop = SparsePauliOp::new(members, &coeffs)? ;
 
-        let spop = spop.unwrap() ;
         let sp_mat = spop.to_matrix_rayon() ;
 
         let num_qubits = spop.num_qubits() as u64 ;
